@@ -1,35 +1,28 @@
 #!/usr/bin/python3
 """
-Script that starts a Flask web application
-/cities_by_states: display a HTML page: (inside the tag BODY)
+file: 8-cities_by_states.py
+Desc: This python module executes simple flask application.
+Author: Gizachew Bayness (Elec Crazy)
+Date Created: Nov 12, 2022
 """
+from models import storage
 from flask import Flask, render_template
-from models import storage, State
-
 app = Flask(__name__)
-app.url_map.strict_slashes = False
+
+
+@app.route("/cities_by_states", strict_slashes=False)
+def list_states():
+    """Renders an html page with some State and City data stored in db"""
+    states = storage.all("State")
+    return render_template("8-cities_by_states.html", states=states)
 
 
 @app.teardown_appcontext
-def close_context(exception):
+def tear_down_db(execute):
+    """Removes the current SQLAlchemy session after each request
+    is completed"""
     storage.close()
 
 
-@app.route('/cities_by_states')
-def cities_states_route():
-    # route that fetches all cities in a stage from the sotrage engine
-
-    states = storage.all(State)
-    all_states = []
-
-    for state in states.values():
-        cities = state.cities
-        cities_list = list(filter(lambda x: x.state_id == state.id, cities))
-        city_data = list(map(lambda x: [x.id, x.name], cities_list))
-        all_states.append([state.id, state.name, city_data])
-
-    return render_template('8-cities_by_states.html', states=all_states)
-
-
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host="0.0.0.0")
